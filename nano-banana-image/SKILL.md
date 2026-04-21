@@ -260,6 +260,51 @@ fetch(`https://generativelanguage.googleapis.com/v1beta/${window._veoOp.name}?ke
 
 ---
 
+### תמונות לדף הנחיתה — היררכיה + בדיקה ויזואלית חובה!
+
+**היררכיית מקורות תמונה:**
+
+1. **Nano Banana Pro** — אם הקוטה זמינה (AI מותאם לעסק)
+2. **Pexels** — אם Nano Banana מחזיר שגיאה 429 (Quota exceeded)
+3. **תמונות מאתר הלקוח** — רק אחרי בדיקה שמתאימות לנושא
+
+**חיפוש ב-Pexels (כשיש שגיאת 429):**
+
+גלוש לחיפוש Pexels עם מילות מפתח **ספציפיות לנושא הדף**, לדוגמא:
+- פדיקור רפואי: `https://www.pexels.com/search/medical+pedicure+clinic/`
+- ייעוץ עסקי: `https://www.pexels.com/search/business+consultant+office/`
+- שיפוץ בתים: `https://www.pexels.com/search/home+renovation+professional/`
+
+```javascript
+// הורדה מ-Pexels (הרץ מתוך דף pexels.com):
+const imgId = 'REPLACE_WITH_ID'; // מה-URL של התמונה
+const imgUrl = `https://images.pexels.com/photos/${imgId}/pexels-photo-${imgId}.jpeg?auto=compress&cs=tinysrgb&w=800&h=1000&fit=crop`;
+fetch(imgUrl)
+  .then(r => r.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'img_[section].jpg';
+    document.body.appendChild(a); a.click();
+  });
+```
+
+**⚠️ חובה — בדיקה ויזואלית אחרי כל הורדה:**
+
+```
+שלב 1: הורד את התמונה לתיקיית Downloads
+שלב 2: השתמש ב-Read tool לצפייה ויזואלית בתמונה עצמה:
+        Read("C:\\Users\\koby-\\Downloads\\[name]_img.jpg")
+שלב 3: Claude רואה את התמונה — בדוק שהיא מדברת לנושא:
+        ✅ מתאים: כלים רפואיים, עבודה מקצועית, סצנה רלוונטית
+        ❌ לא מתאים: נוף טבע, פריטים לא קשורים, אנשים ברקע שגוי
+שלב 4: אם לא מתאים → חפש ב-Pexels עם מילות מפתח אחרות + חזור לשלב 1
+```
+
+> **כלל קריטי:** לעולם אל תכניס תמונה לדף הנחיתה בלי לראות אותה קודם עם `Read` tool ולאשר שהיא רלוונטית לנושא.
+
+---
+
 ### עקרונות עיצוב (חובה!)
 
 **עיצוב ברמת ui-ux-pro-max:**
@@ -326,6 +371,71 @@ fetch(`https://generativelanguage.googleapis.com/v1beta/${window._veoOp.name}?ke
 
 ---
 
+### מצב עריכה מובנה (Edit Mode) — חובה בכל דף!
+
+כל דף נחיתה חייב לכלול **מצב עריכה מלא** — מאפשר למשתמש לדייק טקסטים, תמונות וקישורים בלי לנגוע בקוד.
+
+**הוסף לסוף ה-HTML (לפני `</body>`):**
+
+```html
+<!-- EDIT MODE -->
+<button id="edit-toggle" onclick="EditMode.toggle()" style="position:fixed;top:16px;left:16px;z-index:9999;background:#6C3DE0;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;font-family:Heebo,sans-serif;box-shadow:0 4px 15px rgba(108,61,224,.4);">✏️ עריכה</button>
+<input type="file" id="img-file-input" accept="image/*" style="display:none">
+<div id="link-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;padding:24px;z-index:10000;box-shadow:0 20px 60px rgba(0,0,0,.3);min-width:320px;direction:rtl;">
+  <h3 style="margin:0 0 16px;font-family:Heebo">עריכת קישור</h3>
+  <label style="font-family:Heebo;font-size:14px">טקסט:<br><input id="link-text-input" type="text" style="width:100%;margin:6px 0 12px;padding:8px;border:1px solid #ddd;border-radius:6px;font-family:Heebo"></label>
+  <label style="font-family:Heebo;font-size:14px">קישור:<br><input id="link-href-input" type="text" style="width:100%;margin:6px 0 12px;padding:8px;border:1px solid #ddd;border-radius:6px"></label>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="EditMode.closeLinkPopup()" style="padding:8px 16px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-family:Heebo">ביטול</button>
+    <button onclick="EditMode.saveLink()" style="padding:8px 16px;background:#6C3DE0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Heebo">שמור</button>
+  </div>
+</div>
+<script>
+const EditMode = (() => {
+  let active=false, _curImg=null, _curLink=null;
+  const TEXT_SEL='h1,h2,h3,h4,p,span,.service-title,.service-desc,.stat-number,.stat-label,.testimonial-text,.testimonial-author,.hero-title,.hero-subtitle,.section-title,.section-subtitle,.about-text,.about-name,.about-credentials';
+  const IMG_SEL='section img,.problem-image img,.about-visual img';
+  const LINK_SEL='a.cta-btn,a.whatsapp-float,.footer a,button.cta';
+  function toggle() {
+    active=!active;
+    document.body.classList.toggle('edit-mode',active);
+    document.getElementById('edit-toggle').textContent=active?'💾 שמור ויצא':'✏️ עריכה';
+    if(active) enable(); else { saveHTML(); disable(); }
+  }
+  function enable() {
+    document.querySelectorAll(TEXT_SEL).forEach(el=>{el.dataset.ed='1';el.contentEditable='true';el.style.outline='2px dashed #6C3DE0';});
+    document.querySelectorAll(IMG_SEL).forEach(img=>{img.style.cursor='pointer';img.style.outline='2px dashed #FF6B35';img.addEventListener('click',onImgClick);});
+    document.querySelectorAll(LINK_SEL).forEach(el=>{el.dataset.linkEd='1';el.addEventListener('click',onLinkClick);});
+  }
+  function disable() {
+    document.querySelectorAll('[data-ed]').forEach(el=>{el.contentEditable='false';el.style.outline='';delete el.dataset.ed;});
+    document.querySelectorAll(IMG_SEL).forEach(img=>{img.style.cursor='';img.style.outline='';img.removeEventListener('click',onImgClick);});
+    document.querySelectorAll('[data-link-ed]').forEach(el=>{el.removeEventListener('click',onLinkClick);delete el.dataset.linkEd;});
+  }
+  function onImgClick(e){if(!active)return;e.preventDefault();e.stopPropagation();_curImg=e.currentTarget;document.getElementById('img-file-input').click();}
+  document.getElementById('img-file-input').addEventListener('change',function(){
+    if(!_curImg||!this.files[0])return;
+    const reader=new FileReader();
+    reader.onload=ev=>{_curImg.src=ev.target.result;};
+    reader.readAsDataURL(this.files[0]);this.value='';
+  });
+  function onLinkClick(e){if(!active)return;e.preventDefault();e.stopPropagation();_curLink=e.currentTarget;document.getElementById('link-text-input').value=_curLink.textContent.trim();document.getElementById('link-href-input').value=_curLink.href||'';document.getElementById('link-popup').style.display='block';}
+  function saveLink(){if(_curLink){_curLink.textContent=document.getElementById('link-text-input').value;_curLink.href=document.getElementById('link-href-input').value;}closeLinkPopup();}
+  function closeLinkPopup(){document.getElementById('link-popup').style.display='none';_curLink=null;}
+  function saveHTML(){const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;const blob=new Blob([html],{type:'text/html; charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=document.title.replace(/\s+/g,'_')+'_edited.html';a.click();URL.revokeObjectURL(a.href);}
+  return{toggle,saveLink,closeLinkPopup};
+})();
+</script>
+```
+
+**מה מאפשר מצב העריכה:**
+- לחיצה על כל טקסט → עריכה ישירה
+- לחיצה על תמונה → בחירת קובץ חדש מהמחשב
+- לחיצה על כפתור/קישור → שינוי טקסט + URL
+- לחיצה שנייה על "עריכה" → **שמירה אוטומטית** של הדף הערוך כקובץ HTML
+
+---
+
 ### שמירה ופתיחה
 
 שמור בתיקיית Downloads לצד הסרטון:
@@ -348,6 +458,9 @@ fetch(`https://generativelanguage.googleapis.com/v1beta/${window._veoOp.name}?ke
 5. API דרך Chrome בלבד — הרץ fetch() דרך mcp__Claude_in_Chrome__javascript_tool.
 6. פולינג לסרטון — Veo הוא async. חכה, פלל, אל תניח שנכשל לפני 3 דקות.
 7. Remotion = חינם — אין עלות. ניתן לרנדר כמה פעמים שרוצים.
+8. **בדוק תמונות** — לאחר כל הורדת תמונה, השתמש ב-Read tool לצפייה בתמונה לפני הכנסתה לדף.
+9. **Edit Mode** — כל דף נחיתה חייב לכלול את בלוק ה-Edit Mode המלא.
+10. **Pexels fallback** — אם Nano Banana מחזיר 429, עבור מידית ל-Pexels עם מילות מפתח ספציפיות לנושא.
 
 ---
 
