@@ -1,10 +1,10 @@
 ---
 name: nano-banana-image
 description: |
-  יצירה ועריכת תמונות וסרטונים עם Nano Banana Pro + Veo 3 + Remotion דרך Google AI Studio API.
+  יצירה ועריכת תמונות וסרטונים ודפי נחיתה עם Nano Banana Pro + Veo 3 + Remotion דרך Google AI Studio API.
   השתמש בסקיל הזה כאשר המשתמש רוצה: ליצור תמונה לעסק, לצור סרטון שיווקי, טקסט מונפש, אנימציה שיווקית, רילס, לשפר prompt, לערוך תמונה קיימת.
   
-  הפעל תמיד כאשר המשתמש אומר: "צור תמונה", "תייצר לי תמונה", "ננו בננה", "nano banana", "generate image", "create image", "ערוך תמונה", "שנה תמונה", "תמונה מטקסט", "צור סרטון", "סרטון שיווקי", "veo", "רימושיין", "remotion", "טקסט מונפש", "אנימציה", "רילס".
+  הפעל תמיד כאשר המשתמש אומר: "צור תמונה", "תייצר לי תמונה", "ננו בננה", "nano banana", "generate image", "create image", "ערוך תמונה", "שנה תמונה", "תמונה מטקסט", "צור סרטון", "סרטון שיווקי", "veo", "רימושיין", "remotion", "טקסט מונפש", "אנימציה", "רילס", "דף נחיתה", "landing page".
 ---
 
 # Nano Banana Pro + Veo 3 + Remotion — Image, Video & Animation Skill
@@ -208,6 +208,136 @@ fetch(`https://generativelanguage.googleapis.com/v1beta/${window._veoOp.name}?ke
 ```
 
 ---
+
+
+
+## שלב 9 — דף נחיתה מקצועי (Landing Page)
+
+אחרי שיש סרטון (Veo 3) + לוגו + מחקר על העסק — הצע ליצור **דף נחיתה מלא**.
+
+### מה לשאול לפני הבנייה
+
+שאל את המשתמש רק על מה שחסר (לא לשאול על מה שכבר גילית מהמחקר):
+
+```
+✅ בדוק שיש לך — לפני ששואל:
+- שם העסק ותחום ← מהמחקר
+- כאבי לקוח + פתרונות ← מהמחקר
+- שירותים ← מהמחקר
+- תמונה/סרטון ← כבר יצרנו
+- לוגו ← כבר הורדנו
+- צבעי מותג ← מהמחקר
+
+❓ שאל רק אם חסר:
+- טלפון / ווצאפ (חובה לדף!)
+- כתובת / עיר שירות
+- שם המומחה/ית
+- שאלות נפוצות (FAQ)
+- המלצות לקוחות (testimonials)
+- כמה זמן עסק קיים / כמה לקוחות
+- קישור לאינסטגרם / פייסבוק
+```
+
+> **כלל:** שאל בשאלה אחת מרוכזת, לא 8 שאלות נפרדות.
+> "חסר לי: טלפון/ווצאפ, כתובת, ואם יש המלצות לקוחות — כל השאר יש לי מהמחקר."
+
+---
+
+### מבנה דף הנחיתה
+
+בנה HTML קובץ יחיד (`.html`) עם CSS ו-JS מובנים. כולל:
+
+```
+1. HERO         ← כותרת + תת-כותרת + כפתור CTA + סרטון ברקע או בצד
+2. PROBLEM      ← "האם אתה סובל מ...?" — כאבי הלקוח
+3. SOLUTION     ← הפתרון שלנו + יתרונות
+4. SERVICES     ← כרטיסי שירותים עם אייקונים
+5. ABOUT        ← מי המומחה, ניסיון, הסמכות
+6. TESTIMONIALS ← המלצות לקוחות (3 לפחות)
+7. CTA          ← "השאר פרטים" / כפתור ווצאפ
+8. FOOTER       ← לוגו, קישורים, טלפון
+```
+
+---
+
+### עקרונות עיצוב (חובה!)
+
+**עיצוב ברמת ui-ux-pro-max:**
+
+1. **פונטים:** Heebo (עברית) מ-Google Fonts — `<link>` בראש הדף
+2. **כיוון:** `direction: rtl; text-align: right` על ה-body
+3. **צבעים:** השתמש בצבעי מותג שחולצו מהאתר. הגדר CSS variables:
+```css
+:root {
+  --brand-primary: #[צבע ראשי];
+  --brand-secondary: #[צבע משני];
+  --brand-accent: #[הדגשה];
+}
+```
+4. **אנימציות:** Scroll-triggered reveals עם Intersection Observer
+5. **Hero:** gradient overlay על הסרטון/תמונה — לא רקע ריק
+6. **כפתורי CTA:** גדולים, בצבע מותג, עם hover animation
+7. **Mobile-first:** responsive בכל גודל מסך
+
+---
+
+### וידאו בדף
+
+הסרטון של Veo 3 שיצרנו — הטמע כ-`<video>` element:
+
+```html
+<!-- אופציה A: ברקע ה-Hero -->
+<div class="hero">
+  <video autoplay muted loop playsinline class="hero-video">
+    <source src="./[name]_pedicure.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>כותרת ראשית</h1>
+    <p>תת-כותרת</p>
+    <a href="https://wa.me/972XXXXXXX" class="cta-btn">דברו איתנו עכשיו</a>
+  </div>
+</div>
+```
+
+---
+
+### כפתור ווצאפ צף (חובה!)
+
+```html
+<a href="https://wa.me/972XXXXXXXXX?text=היי, אשמח לקבל פרטים" 
+   class="whatsapp-float" target="_blank">💬</a>
+
+<style>
+.whatsapp-float {
+  position: fixed; bottom: 24px; left: 24px;
+  z-index: 999; background: #25D366;
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+  animation: pulse 2s infinite; text-decoration: none;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+</style>
+```
+
+---
+
+### שמירה ופתיחה
+
+שמור בתיקיית Downloads לצד הסרטון:
+`C:\Users\koby-\Downloads\[business-name]_landing.html`
+
+תן למשתמש קישור: `[פתח דף נחיתה](computer://C:\Users\koby-\Downloads\[name]_landing.html)`
+
+---
+
+### שאל אחרי הבנייה
+
+> "רוצה שאתאים את הצבעים / הטקסטים / המבנה? אפשר לשנות כל דבר."
 
 ## כללי ברזל
 
